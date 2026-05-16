@@ -1,23 +1,21 @@
 ---
-name: bilibili-transcript
-description: Transcribe Bilibili (B站) videos to text so agents can learn from video content. Use whenever the user provides a B站 video link (bilibili.com, b23.tv), asks to transcribe a B站 video, or wants to extract/summarize content from a 哔哩哔哩 video. Supports existing subtitles (fast) and AI-generated transcription via Whisper (slower but always available).
+name: video-transcript
+description: Transcribe online videos (Bilibili/B站, YouTube, Vimeo, Twitch, and any yt-dlp supported platform) to text so agents can learn from video content. Use whenever the user provides a video link (bilibili.com, b23.tv, youtube.com, youtu.be, vimeo.com, twitch.tv, etc.), asks to transcribe a video, or wants to extract/summarize content from a video. Supports existing subtitles (fast) and AI-generated transcription via local Whisper (slower but always available).
 ---
 
-# Bilibili Video Transcription
+# Video Transcription
 
-Transcribes B站 videos to text using the `video-toolkit` MCP server.
+Transcribes online videos to text using the `video-toolkit` MCP server. Works with **any platform supported by yt-dlp** — Bilibili (B站), YouTube, Vimeo, Twitch, and hundreds more.
 
 ## Workflow
 
 ### Step 1: Resolve short links
 
-B23.tv short links (`https://b23.tv/XXXXX`) must be resolved first:
+Short links like `b23.tv/XXXXX` or `youtu.be/XXXXX` must be resolved first:
 
 ```bash
 curl -sI "https://b23.tv/XXXXX" | grep -i location
 ```
-
-This gives the full `bilibili.com/video/BVxxxxx` URL.
 
 ### Step 2: Try existing subtitles first
 
@@ -25,11 +23,11 @@ Call `get-transcript` from the video-toolkit MCP server:
 
 ```
 MCP tool: video-toolkit → get-transcript
-Args: { "url": "<bilibili video URL>", "lang": "zh" }
+Args: { "url": "<video URL>", "lang": "zh" }
 ```
 
-- If the video has CC subtitles and you're logged in to B站 → instant result
-- If no subtitles or not logged in → will fail, proceed to Step 3
+- If the video has subtitles → instant result
+- If no subtitles → fails, proceed to Step 3
 
 ### Step 3: Generate subtitles with Whisper
 
@@ -37,10 +35,10 @@ Call `generate-subtitles` from the video-toolkit MCP server:
 
 ```
 MCP tool: video-toolkit → generate-subtitles
-Args: { "url": "<bilibili video URL>", "language": "zh" }
+Args: { "url": "<video URL>", "language": "zh" }
 ```
 
-This downloads the audio, converts it, and transcribes with local Whisper (small model).
+Downloads audio, converts to 16kHz mono, transcribes with local Whisper (small model).
 
 **Timing** (CPU, ~4 cores):
 | Video length | Transcription time |
@@ -52,11 +50,24 @@ This downloads the audio, converts it, and transcribes with local Whisper (small
 
 ### Step 4: Use the transcript
 
-Once transcribed, read the returned text and answer the user's question. The transcript includes timestamps — use them to cite specific moments if needed.
+Read the returned text and answer the user's question. Timestamps included — cite specific moments if needed.
+
+### Step 5: Check available languages
+
+```
+MCP tool: video-toolkit → list-transcript-languages
+Args: { "url": "<video URL>" }
+```
+
+## Supported Platforms
+
+Anything [yt-dlp supports](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md):
+
+**Bilibili** (bilibili.com, b23.tv) · **YouTube** (youtube.com, youtu.be) · **Vimeo** · **Twitch** · Podcast feeds · Direct media URLs · And hundreds more
 
 ## Configuration
 
-The video-toolkit MCP server must be configured in `opencode.jsonc`:
+The `video-toolkit` MCP server must be in `opencode.jsonc`:
 
 ```json
 "video-toolkit": {
@@ -74,18 +85,18 @@ The video-toolkit MCP server must be configured in `opencode.jsonc`:
 }
 ```
 
-The local whisper wrapper is bundled at `scripts/whisper`. Copy it to `~/.local/bin/whisper` and make it executable.
+The local whisper wrapper is bundled at `scripts/whisper`. Copy to `~/.local/bin/whisper` and `chmod +x`.
 
 ## Dependencies
 
-- `yt-dlp` — downloads B站 video audio
+- `yt-dlp` — downloads video/audio
 - `ffmpeg` — audio format conversion
-- `faster-whisper` (`pip install faster-whisper`) — local transcription engine
+- `faster-whisper` (`pip install faster-whisper`) — local transcription
 - `whisper` wrapper script at `~/.local/bin/whisper`
 
 ## Limitations
 
-- **B站 subtitles require login**: `get-transcript` (fetching existing subtitles) only works when authenticated with B站 cookies. When not logged in, always fall through to `generate-subtitles`.
-- **Transcription speed**: CPU-bound; roughly 4-5x realtime with the small model.
-- **Accuracy**: Good for clear speech; background noise or heavy accents may reduce quality.
-- **Long videos**: Videos over 1 hour may exceed context windows. Consider summarizing in chunks.
+- **Some platforms require authentication** for subtitles (e.g. B站). `generate-subtitles` with local Whisper always works as fallback.
+- **Transcription speed**: CPU-bound, ~4-5x realtime with small model.
+- **Accuracy**: Good for clear speech; noise or heavy accents reduce quality.
+- **Long videos** (>1h) may exceed context windows. Process in chunks.
