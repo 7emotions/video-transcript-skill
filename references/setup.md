@@ -1,4 +1,4 @@
-# Bilibili Transcript Skill Setup
+# Video Transcript Skill Setup
 
 ## Install Dependencies
 
