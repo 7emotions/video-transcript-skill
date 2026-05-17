@@ -22,7 +22,9 @@ cp scripts/whisper ~/.local/bin/whisper
 chmod +x ~/.local/bin/whisper
 ```
 
-## Configure video-toolkit MCP
+## Configure video-toolkit MCP (exposes native tools)
+
+The MCP server is configured in `opencode.jsonc` and its tools are exposed as native `video-toolkit_*` tools.
 
 Clone and build:
 
@@ -41,8 +43,9 @@ Add to `opencode.jsonc` under `mcp`:
   "enabled": true,
   "timeout": 600000,
   "environment": {
-    "YT_DLP_PATH": "yt-dlp",
-    "FFMPEG_PATH": "ffmpeg",
+    "YT_DLP_PATH": "/home/ubuntu/.local/bin/yt-dlp",
+    "FFMPEG_PATH": "/home/ubuntu/.local/bin/ffmpeg",
+    "FFPROBE_PATH": "/home/ubuntu/.local/bin/ffprobe",
     "TRANSCRIPT_MCP_WHISPER_ENGINE": "local",
     "WHISPER_BINARY_PATH": "/home/ubuntu/.local/bin/whisper",
     "WHISPER_MODEL_PATH": "small"
@@ -50,4 +53,4 @@ Add to `opencode.jsonc` under `mcp`:
 }
 ```
 
-Restart OpenCode to load the new MCP server.
+Restart OpenCode to load the tools. Once loaded, tools are called natively (e.g., `video-toolkit_get-transcript`) — no `skill_mcp` wrapper needed.

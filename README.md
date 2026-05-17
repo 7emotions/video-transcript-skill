@@ -35,10 +35,16 @@ CPU transcription with `faster-whisper` small model (~4 cores):
 | 30 min | ~6.5 min |
 | 1 hour | ~13 min |
 
-## MCP Tools Used
+## Tools Used
 
-- `video-toolkit` → `get-transcript` — existing subtitles (platform-dependent)
-- `video-toolkit` → `generate-subtitles` — AI transcription via local Whisper
+The video-toolkit MCP server (configured in `opencode.jsonc`) exposes the following native tools:
+
+- `video-toolkit_get-transcript` — fetch existing subtitles (platform-dependent, instant)
+- `video-toolkit_generate-subtitles` — AI transcription via local Whisper
+- `video-toolkit_list-transcript-languages` — list available subtitle languages
+- `video-toolkit_download-video` — download video to local storage
+- `video-toolkit_list-downloads` — list downloaded videos
+- `video-toolkit_transcribe-audio` — transcribe local audio files
 
 ## License
 

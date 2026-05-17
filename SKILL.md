@@ -5,7 +5,7 @@ description: Transcribe online videos (Bilibili/B站, YouTube, Vimeo, Twitch, an
 
 # Video Transcription
 
-Transcribes online videos to text using the `video-toolkit` MCP server. Works with **any platform supported by yt-dlp** — Bilibili (B站), YouTube, Vimeo, Twitch, and hundreds more.
+Transcribes online videos to text using the `video-toolkit_*` native tools (backed by the video-toolkit MCP server configured in `opencode.jsonc`). Works with **any platform supported by yt-dlp** — Bilibili (B站), YouTube, Vimeo, Twitch, and hundreds more.
 
 ## Workflow
 
@@ -19,11 +19,11 @@ curl -sI "https://b23.tv/XXXXX" | grep -i location
 
 ### Step 2: Try existing subtitles first
 
-Call `get-transcript` from the video-toolkit MCP server:
+Call the native tool `video-toolkit_get-transcript`:
 
 ```
-MCP tool: video-toolkit → get-transcript
-Args: { "url": "<video URL>", "lang": "zh" }
+video-toolkit_get-transcript
+Args: url="<video URL>", lang="zh"
 ```
 
 - If the video has subtitles → instant result
@@ -31,11 +31,11 @@ Args: { "url": "<video URL>", "lang": "zh" }
 
 ### Step 3: Generate subtitles with Whisper
 
-Call `generate-subtitles` from the video-toolkit MCP server:
+Call the native tool `video-toolkit_generate-subtitles`:
 
 ```
-MCP tool: video-toolkit → generate-subtitles
-Args: { "url": "<video URL>", "language": "zh" }
+video-toolkit_generate-subtitles
+Args: url="<video URL>", language="zh"
 ```
 
 Downloads audio, converts to 16kHz mono, transcribes with local Whisper (small model).
@@ -55,8 +55,8 @@ Read the returned text and answer the user's question. Timestamps included — c
 ### Step 5: Check available languages
 
 ```
-MCP tool: video-toolkit → list-transcript-languages
-Args: { "url": "<video URL>" }
+video-toolkit_list-transcript-languages
+Args: url="<video URL>"
 ```
 
 ## Supported Platforms
@@ -67,7 +67,7 @@ Anything [yt-dlp supports](https://github.com/yt-dlp/yt-dlp/blob/master/supporte
 
 ## Configuration
 
-The `video-toolkit` MCP server must be in `opencode.jsonc`:
+The `video-toolkit` MCP server is configured in `opencode.jsonc` and its tools are exposed as native `video-toolkit_*` tools (no `skill_mcp` invocation needed):
 
 ```json
 "video-toolkit": {
@@ -76,8 +76,9 @@ The `video-toolkit` MCP server must be in `opencode.jsonc`:
   "enabled": true,
   "timeout": 600000,
   "environment": {
-    "YT_DLP_PATH": "yt-dlp",
-    "FFMPEG_PATH": "ffmpeg",
+    "YT_DLP_PATH": "/home/ubuntu/.local/bin/yt-dlp",
+    "FFMPEG_PATH": "/home/ubuntu/.local/bin/ffmpeg",
+    "FFPROBE_PATH": "/home/ubuntu/.local/bin/ffprobe",
     "TRANSCRIPT_MCP_WHISPER_ENGINE": "local",
     "WHISPER_BINARY_PATH": "/home/ubuntu/.local/bin/whisper",
     "WHISPER_MODEL_PATH": "small"
